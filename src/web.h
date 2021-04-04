@@ -1,9 +1,9 @@
 #ifndef WEB_H
 #define WEB_H
 
+#include "http.h"
 #include <ESP8266WiFi.h>
 #include <Ticker.h>
-#include "http.h"
 
 class Web {
   private:

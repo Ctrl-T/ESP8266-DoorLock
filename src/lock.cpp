@@ -1,9 +1,9 @@
 #include "lock.h"
 
-Lock::Lock() {}
+Lock::Lock() { locked = true; }
 
 /**
- * 初始化为锁门状态
+ * @brief 初始化为锁门状态
  **/
 void Lock::init() {
     servo.attach(PIN_LOCK);
@@ -15,7 +15,7 @@ void Lock::init() {
 }
 
 /**
- * 旋转到目标位置
+ * @brief 旋转到目标位置
  **/
 void Lock::rotateTo(int destPos) {
     if (destPos > 180 || destPos < 0 || destPos == pos) {
@@ -33,22 +33,29 @@ void Lock::rotateTo(int destPos) {
 }
 
 /**
- * 关锁
+ * @brief 关锁
  **/
 void Lock::lockUp() {
     Serial.println("LockUp...");
     digitalWrite(PIN_LED, LOW);
     rotateTo(LOCK_POS);
+    locked = true;
     servo.detach();
 }
 
 /**
- * 开锁
+ * @brief 开锁
  **/
 void Lock::unLock() {
+    if (!locked) {
+        return;
+    }
     servo.attach(PIN_LOCK);
     Serial.println("Unlock...");
     digitalWrite(PIN_LED, HIGH);
     rotateTo(UNLOCK_POS);
+    locked = false;
     tickerOpen.once_scheduled(3, std::bind(&Lock::lockUp, this));
 }
+
+bool Lock::isLocked() { return locked; }

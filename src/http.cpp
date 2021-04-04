@@ -3,6 +3,9 @@ HTTPClient Http::client;
 WiFiClient Http::wifi;
 Http::Http(/* args */) {}
 
+/**
+ * @brief 向pushplus推送消息
+ **/
 void Http::pushplus(const char *content, const char *title) {
     if (title == NULL) {
         title = content;
@@ -17,6 +20,9 @@ void Http::pushplus(const char *content, const char *title) {
     }
 }
 
+/**
+ * @brief 文字编码进URL
+ **/
 String Http::urlEncode(String str) {
     String encodedString = "";
     char c;
@@ -47,6 +53,9 @@ String Http::urlEncode(String str) {
     return encodedString;
 }
 
+/**
+ * @brief 连续工作时间推送
+ **/
 void Http::pulse() {
     String minute = String(millis() / (1000 * 60));
     String msg = String("已连续工作 ") + minute + " 分钟";

@@ -22,7 +22,9 @@ void setup() {
 }
 
 void loop() {
-    if (web.readServer() || nfc.readCardID() || finger.readFinger()) {
-        lock.unLock();
+    if (lock.isLocked()) {
+        if (finger.readFinger() || nfc.readCardID() || web.readServer()) {
+            lock.unLock();
+        }
     }
 }

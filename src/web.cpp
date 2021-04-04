@@ -5,9 +5,10 @@ Web::Web() {
     // client.setTimeout(1000);
 }
 
+/**
+ * @brief 连接wifi
+ **/
 void Web::connectWifi() {
-    // We start by connecting to a WiFi network
-
     Serial.println();
     Serial.println();
     Serial.print("Connecting to ");
@@ -33,6 +34,9 @@ void Web::connectWifi() {
     Serial.println(WiFi.localIP());
 }
 
+/**
+ * @brief 连接服务器
+ **/
 void Web::connectServer() {
     Serial.print("connecting to ");
     Serial.print(HOST);
@@ -50,10 +54,14 @@ void Web::connectServer() {
         client.keepAlive();
         client.print("Hello from ESP8266");
         Http::pushplus("成功连接服务器");
-        tickerPulse.attach_scheduled(60 * 10, std::bind(&Web::sendPulse, this));
+        // tickerPulse.attach_scheduled(60 * 10, std::bind(&Web::sendPulse, this));
     }
 }
 
+/**
+ * @brief 检查来自服务器的命令
+ * @retval 是否收到开锁命令
+ **/
 bool Web::readServer() {
     // Serial.println("reading from server..");
     if (WiFi.status() != WL_CONNECTED) { // make sure WiFi connected
@@ -77,6 +85,10 @@ bool Web::readServer() {
     return false;
 }
 
+/**
+ * @brief 检查来自串口的命令
+ * @retval 串口收到的数字
+ **/
 int Web::readSerial() {
     int comInt = 0;
     if (Serial.available() > 0) {
@@ -88,4 +100,7 @@ int Web::readSerial() {
     return comInt;
 }
 
+/**
+ * @brief 向服务器发心跳包
+ **/
 void Web::sendPulse() { client.print("Hello from ESP8266"); }

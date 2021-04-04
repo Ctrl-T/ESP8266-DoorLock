@@ -2,7 +2,7 @@
 NFC::NFC() {}
 
 /**
- * 读取NFC卡号，在列表中则返回真
+ * @brief 读取NFC卡号，在列表中则返回真
  **/
 bool NFC::readCardID() {
     uint8 revdata[32];
@@ -35,7 +35,8 @@ bool NFC::readCardID() {
 }
 
 /**
- * 检验和, 正确则返回真
+ * @brief 检验和
+ * @retval 是否正确
  **/
 bool NFC::CheckSumIn(uint8 *buf, int len) {
     uint8 i;
@@ -50,9 +51,10 @@ bool NFC::CheckSumIn(uint8 *buf, int len) {
     return false;
 }
 
-
 /**
- * 检查卡号, 在列表中则返回真
+ * @brief 检查卡号
+ * @retval 卡号是否在列表中
+ * 
  **/
 bool NFC::isInList(uint8 *id) {
     bool inList = false;
