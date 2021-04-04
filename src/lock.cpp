@@ -6,12 +6,12 @@ Lock::Lock() {}
  * 初始化为锁门状态
  **/
 void Lock::init() {
-    servo.attach(LOCK_PORT);
+    servo.attach(PIN_LOCK);
     pos = servo.read();
     rotateTo(LOCK_POS);
     servo.detach();
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
+    pinMode(PIN_LED, OUTPUT);
+    digitalWrite(PIN_LED, LOW);
 }
 
 /**
@@ -37,7 +37,7 @@ void Lock::rotateTo(int destPos) {
  **/
 void Lock::lockUp() {
     Serial.println("LockUp...");
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(PIN_LED, LOW);
     rotateTo(LOCK_POS);
     servo.detach();
 }
@@ -46,9 +46,9 @@ void Lock::lockUp() {
  * 开锁
  **/
 void Lock::unLock() {
-    servo.attach(LOCK_PORT);
+    servo.attach(PIN_LOCK);
     Serial.println("Unlock...");
-    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(PIN_LED, HIGH);
     rotateTo(UNLOCK_POS);
     tickerOpen.once_scheduled(3, std::bind(&Lock::lockUp, this));
 }

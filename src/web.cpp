@@ -54,7 +54,7 @@ void Web::connectServer() {
     }
 }
 
-int Web::readServer() {
+bool Web::readServer() {
     // Serial.println("reading from server..");
     if (WiFi.status() != WL_CONNECTED) { // make sure WiFi connected
         connectWifi();
@@ -64,7 +64,7 @@ int Web::readServer() {
         connectServer();
     }
     if (!client.available()) { // check available data
-        return 0;
+        return false;
     }
     Serial.println("开始读取网络命令");
     String order = client.readStringUntil('\n');
@@ -72,12 +72,9 @@ int Web::readServer() {
     Serial.print("receive order: ");
     Serial.println(order);
     if (order == "OPEN") {
-        return 1;
+        return true;
     }
-    if (order == "CLOSE") {
-        return 2;
-    }
-    return 0;
+    return false;
 }
 
 int Web::readSerial() {

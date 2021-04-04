@@ -1,232 +1,50 @@
 #include "finger.h"
 
-Finger::Finger(/* args */) {}
+Finger::Finger(/* args */) : serialFinger(PIN_FNGR_RX, PIN_FNGR_TX) {}
 
-Finger::~Finger() {}
-
-void  Finger::init() {
-softwareSerial
+void Finger::init() { serialFinger.begin(115200); }
+/**
+ * @brief  根据枚举值的不同发送不同的指令给指纹模块
+ * @param  cmd 指定命令 @ref Command_t
+ * @retval None
+ */
+void Finger::sendCmd(Command_t cmd) {
+    serialFinger.write(CMD_DATA[cmd], 26);
+    /* 等待指纹模块返回26个字节应答数据 */
+    serialFinger.readBytes(recvBuff, 26);
 }
 
-bool Finger::identify() {
-    int w_nRet, w_nTmplNo, w_nLearned;
-
-    while (1) {
-        DoLedCtrl(E_LED_CTRL_CAPTURE);
-
-        //. Get Image
-        while (1) {
-            //. Get Image
-            w_nRet = m_clsCommu.Run_GetImage();
-
-            if (w_nRet == ERR_SUCCESS)
-                break;
-            else if ((w_nRet == ERR_CONNECTION) ||
-                     (w_nRet == ERR_NOT_AUTHORIZED)) {
-                return false;
-            }
-        }
-
-        DoLedCtrl(E_LED_CTRL_DETECTED);
-
-        //. Create Template
-        w_nRet = m_clsCommu.Run_Generate(0);
-
-        if (w_nRet != ERR_SUCCESS) {
-            return false;
-        }
-
-        //. Identify
-        w_nRet = m_clsCommu.Run_Search(0, 1, 80, &w_nTmplNo, &w_nLearned);
-
-        if (w_nRet == ERR_SUCCESS) {
-            DoLedCtrl(E_LED_CTRL_IDENTIFY_OK);
-            return true;
-        } else {
-            return false;
-            DoLedCtrl(E_LED_CTRL_IDENTIFY_NG);
-        }
+/**
+ * @brief  尝试指纹解锁
+ * @retval None
+ */
+bool Finger::readFinger() {
+    /* 指示灯灭, 阻塞等待指纹模块上有手指按下 */
+    sendCmd(CMD_LED_ALL_OFF);
+    sendCmd(CMD_FINGER_DETECT);
+    if (recvBuff[10] != 1) {
+        Serial.println("无指纹按下");
+        return false;
     }
-}
-
-int Finger::Run_GetImage() {
-    bool w_bRet;
-
-    w_bRet = Run_Command_NP(CMD_GET_IMAGE);
-
-    if (!w_bRet)
-        return ERR_CONNECTION;
-
-    return RESPONSE_RET;
-}
-
-bool Finger::Run_Command_NP(short p_wCMD) {
-    bool w_bRet;
-
-    //. Assemble command packet
-    InitCmdPacket(p_wCMD, m_bySrcDeviceID, m_byDstDeviceID, NULL, 0);
-    w_bRet = SendCommand(p_wCMD, m_bySrcDeviceID, m_byDstDeviceID);
-    return w_bRet;
-}
-
-void Finger::InitCmdPacket(u16 p_wCMDCode, u8 p_bySrcDeviceID,
-                           u8 p_byDstDeviceID, u8 *p_pbyData, u16 p_wDataLen) {
-    int i;
-    u16 w_wCheckSum;
-
-    memset(g_Packet, 0, sizeof(g_Packet));
-    g_pCmdPacket->m_wPrefix = CMD_PREFIX_CODE;
-    g_pCmdPacket->m_bySrcDeviceID = p_bySrcDeviceID;
-    g_pCmdPacket->m_byDstDeviceID = p_byDstDeviceID;
-    g_pCmdPacket->m_wCMDCode = p_wCMDCode;
-    g_pCmdPacket->m_wDataLen = p_wDataLen;
-
-    if (p_wDataLen)
-        memcpy(g_pCmdPacket->m_abyData, p_pbyData, p_wDataLen);
-
-    w_wCheckSum = 0;
-
-    for (i = 0; i < sizeof(ST_CMD_PACKET) - 2; i++) {
-        w_wCheckSum = w_wCheckSum + g_Packet[i];
+    sendCmd(CMD_GET_IMAGE);
+    if (recvBuff[8] != 0x00) {
+        Serial.println("获取指纹失败");
+        return false;
     }
 
-    g_pCmdPacket->m_wCheckSum = w_wCheckSum;
-
-    g_dwPacketSize = sizeof(ST_CMD_PACKET);
-}
-
-bool Finger::SendCommand(u16 p_wCMDCode, u8 p_bySrcDeviceID,
-                         u8 p_byDstDeviceID) {
-    u32 w_nSendCnt = 0;
-    long w_nResult = 0;
-    int w_nRet;
-    bool w_bRet;
-
-    g_Serial.Purge();
-
-    ::SendMessage(g_hMainWnd, WM_CMD_PACKET_HOOK, 0, 0);
-
-    // encrypt packet
-    w_nRet = EncryptCommandPacket();
-
-    w_nResult = g_Serial.Write(g_Packet, g_dwPacketSize, &w_nSendCnt, NULL,
-                               COMM_TIMEOUT);
-
-    if (ERROR_SUCCESS != w_nResult) {
-        return FALSE;
+    /* 生成指纹特征并验证是否匹配已录入的指纹 */
+    sendCmd(CMD_GENERATE_0);
+    sendCmd(CMD_SEARCH_FINGERPRINT);
+    if (recvBuff[6] == 0x05 && recvBuff[10] > 0) {
+        /* 绿灯亮，表示指纹匹配或者指纹录入完成，控制继电器开门 */
+        Serial.println("指纹比对成功");
+        sendCmd(CMD_LED_GREEN_ON);
+        return true;
     }
-
-    if (w_nRet == ERR_SUCCESS) {
-        w_bRet = ReceiveDataAck(p_wCMDCode, p_bySrcDeviceID, p_byDstDeviceID);
-    } else {
-        w_bRet = ReceiveAck(p_wCMDCode, p_bySrcDeviceID, p_byDstDeviceID);
+    /* 指纹数据和录入过的都不匹配，亮红灯 */
+    else {
+        sendCmd(CMD_LED_RED_ON);
+        Serial.println("指纹比对失败");
+        return false;
     }
-
-    return w_bRet;
-}
-void Finger::DoLedCtrl(unsigned char p_nCtrlCode)
-{
-	unsigned char w_nColor = 0;
-
-	if (m_bAdvLed)	// Advanced
-	{
-		switch (p_nCtrlCode)
-		{
-		case E_LED_CTRL_CONNECT:
-			{
-				// Blue Led Breath
-				w_nColor = 0x80 + (1 << E_LED_COLOR_OK);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_BREATH));
-				break;
-			}
-		case E_LED_CTRL_DISCONNECT:
-			{
-				// All Led Off
-				w_nColor = 0x80 + (1 << E_LED_COLOR_OK) + (1 << E_LED_COLOR_NG);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_OFF));
-				break;
-			}
-		case E_LED_CTRL_WAIT:
-			{
-				// Blue Led Breath
-				w_nColor = 0x80 + (1 << E_LED_COLOR_OK);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_BREATH));
-				break;
-			}
-		case E_LED_CTRL_CAPTURE:
-			{
-				// Blue Led Blink Slow
-				w_nColor = 0x80 + (1 << E_LED_COLOR_OK);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_BLINK_SLOW));
-				break;
-			}
-		case E_LED_CTRL_DETECTED:
-			{
-				// All Led Off
-				w_nColor = 0x80 + (1 << E_LED_COLOR_OK) + (1 << E_LED_COLOR_NG);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_OFF));
-				break;
-			}
-		case E_LED_CTRL_IDENTIFY_OK:
-			{
-				UpdateData(FALSE);
-				DoEvents();
-
-				// Blue Led On 1s
-				w_nColor = 0x80 + (1 << E_LED_COLOR_OK);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_ON));
-				Sleep(1000);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_OFF));
-				break;
-			}
-		case E_LED_CTRL_IDENTIFY_NG:
-			{
-				UpdateData(FALSE);
-				DoEvents();
-
-				// Red Led On 1s
-				w_nColor = 0x80 + (1 << E_LED_COLOR_NG);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_ON));
-				Sleep(1000);
-				m_clsCommu.Run_SLEDControl(LED_VAL(w_nColor, E_LED_STATUS_OFF));
-				break;
-			}
-		default:
-			{
-				break;
-			}
-		}
-	}
-	else	// Original
-	{
-		switch (p_nCtrlCode)
-		{
-		case E_LED_CTRL_WAIT:
-			{
-				// Led Off
-				m_clsCommu.Run_SLEDControl(0);
-				break;
-			}
-		case E_LED_CTRL_CAPTURE:
-			{
-				// Led On
-				m_clsCommu.Run_SLEDControl(1);
-				break;
-			}
-		case E_LED_CTRL_DETECTED:
-			{
-				// Led Off
-				m_clsCommu.Run_SLEDControl(0);
-				break;
-			}
-		case E_LED_CTRL_CONNECT:
-		case E_LED_CTRL_DISCONNECT:
-		case E_LED_CTRL_IDENTIFY_OK:
-		case E_LED_CTRL_IDENTIFY_NG:
-		default:
-			{
-				break;
-			}
-		}
-	}
 }

@@ -19,7 +19,7 @@ class Web {
     Web(/* args */);
     void connectWifi();
     void connectServer();
-    int readServer();
+    bool readServer();
     int readSerial();
     void sendPulse();
 };
