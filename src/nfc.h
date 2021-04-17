@@ -11,6 +11,7 @@ class NFC {
                                     {0x20, 0xd7, 0x14, 0x49},
                                     {0xa1, 0xb7, 0x93, 0x74},
                                     {0xf0, 0xd, 0x12, 0x49}}; // 允许的门卡ID
+
   public:
     NFC();
     bool readCardID();

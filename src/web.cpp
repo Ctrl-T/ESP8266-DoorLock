@@ -1,14 +1,12 @@
 #include "web.h"
 #include "http.h"
 
-Web::Web() {
-    // client.setTimeout(1000);
-}
+WebClass::WebClass() { cmdRcved = false; }
 
 /**
  * @brief 连接wifi
  **/
-void Web::connectWifi() {
+void WebClass::connectWifi() {
     Serial.println();
     Serial.println();
     Serial.print("Connecting to ");
@@ -17,17 +15,12 @@ void Web::connectWifi() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(SSID, PASSWORD);
 
-    int trial = 0;
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-        ++trial;
-        if (trial > 10) {
-            Serial.println("fail to connect WiFi");
-            return;
-        }
+    if (WiFi.waitForConnectResult(6000) != WL_CONNECTED) {
+        Serial.println("fail to connect WiFi");
+        return;
     }
 
+    WiFi.setAutoReconnect(true);
     Serial.println("");
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
@@ -37,59 +30,57 @@ void Web::connectWifi() {
 /**
  * @brief 连接服务器
  **/
-void Web::connectServer() {
+void WebClass::connectServer() {
     Serial.print("connecting to ");
     Serial.print(HOST);
     Serial.print(':');
     Serial.println(PORT);
 
-    if (!client.connect(HOST, PORT)) {
-        Serial.println("connection failed");
-        Http::pushplus("尝试连接服务器失败");
-        return;
-    }
+    client.onData(&handleData, this);
+    client.onConnect(&onConnect, &client);
+    client.onDisconnect(&onDisonnect, this);
+    client.onError(&onError, this);
+    client.connect(HOST, PORT);
+}
 
-    Serial.println("sending hello msg to server");
-    if (client.connected()) {
-        client.keepAlive();
-        client.print("Hello from ESP8266");
-        Http::pushplus("成功连接服务器");
-        // tickerPulse.attach_scheduled(60 * 10, std::bind(&Web::sendPulse, this));
+void WebClass::replyToServer(void *arg) {
+    AsyncClient *client = reinterpret_cast<AsyncClient *>(arg);
+
+    // send reply
+    if (client->space() > 32 && client->canSend()) {
+        client->write("Hello from ESP8266");
     }
 }
 
-/**
- * @brief 检查来自服务器的命令
- * @retval 是否收到开锁命令
- **/
-bool Web::readServer() {
-    // Serial.println("reading from server..");
-    if (WiFi.status() != WL_CONNECTED) { // make sure WiFi connected
-        connectWifi();
+void WebClass::handleData(void *arg, AsyncClient *client, void *data,
+                          size_t len) {
+    Serial.print("收到网络命令：");
+    Serial.println((char *)data);
+    // Http.pushplus("收到网络命令");
+    // Http::pushplus((String("收到网络命令：") + (char *)data).c_str());
+    if (strncmp((char *)data, "OPEN\n", len) == 0) {
+        reinterpret_cast<WebClass *>(arg)->cmdRcved = true;
     }
-    if (!client.connected()) { // make sure TCP connected
-        Http::pushplus("与服务器失去连接");
-        connectServer();
-    }
-    if (!client.available()) { // check available data
-        return false;
-    }
-    Serial.println("开始读取网络命令");
-    String order = client.readStringUntil('\n');
-    Http::pushplus((String("收到网络命令：") + order).c_str());
-    Serial.print("receive order: ");
-    Serial.println(order);
-    if (order == "OPEN") {
-        return true;
-    }
-    return false;
+}
+
+void WebClass::onConnect(void *arg, AsyncClient *client) {
+    client->keepAlive();
+    replyToServer(client);
+    Serial.println("成功连接服务器");
+    // Http.pushplus("成功连接服务器");
+}
+
+void WebClass::onDisonnect(void *arg, AsyncClient *client) {
+    Serial.println("与服务器的连接断开");
+    WebClass *web = reinterpret_cast<WebClass *>(arg);
+    client->connect(web->HOST, web->PORT);
 }
 
 /**
  * @brief 检查来自串口的命令
  * @retval 串口收到的数字
  **/
-int Web::readSerial() {
+int WebClass::readSerial() {
     int comInt = 0;
     if (Serial.available() > 0) {
         delay(20);
@@ -101,6 +92,21 @@ int Web::readSerial() {
 }
 
 /**
- * @brief 向服务器发心跳包
+ * @brief 读取网络命令
+ * @retval 是否收到开锁信号
  **/
-void Web::sendPulse() { client.print("Hello from ESP8266"); }
+bool WebClass::rcvCmd() {
+    if (cmdRcved) {
+        cmdRcved = false;
+        return true;
+    }
+    return false;
+}
+
+void WebClass::onError(void *arg, AsyncClient *client, err_t err) {
+    Serial.println("与服务器的连接发生错误");
+    WebClass *web = reinterpret_cast<WebClass *>(arg);
+    client->connect(web->HOST, web->PORT);
+}
+
+WebClass Web;

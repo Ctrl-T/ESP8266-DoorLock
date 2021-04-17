@@ -1,7 +1,6 @@
 #ifndef FINGER_H
 #define FINFER_H
 
-#include "pins.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
@@ -32,7 +31,7 @@ class Finger {
     u8 recvBuff[26];
 
   public:
-    Finger();
+    Finger(int pinRx, int pinTx);
     void sendCmd(Command_t cmd);
     bool readFinger();
     void init();

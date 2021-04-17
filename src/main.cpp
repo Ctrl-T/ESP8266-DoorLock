@@ -1,30 +1,29 @@
+#include "OTA.h"
 #include "finger.h"
-#include "http.h"
 #include "lock.h"
 #include "nfc.h"
+#include "pins.h"
 #include "web.h"
 #include <Arduino.h>
-#include <Ticker.h>
 
-Web web;
-Lock lock;
+Lock lock(PIN_LOCK, PIN_LED);
 NFC nfc;
-Ticker tickerPulse;
-Finger finger;
+Finger finger(PIN_FNGR_RX, PIN_FNGR_TX);
 
 void setup() {
     Serial.begin(9600);
     finger.init();
     lock.init();
-    web.connectWifi();
-    web.connectServer();
-    // tickerPulse.attach_scheduled(60 * 30, Http::pulse);
+    Web.connectWifi();
+    Web.connectServer();
+    OTA.init();
 }
 
 void loop() {
     if (lock.isLocked()) {
-        if (finger.readFinger() || nfc.readCardID() || web.readServer()) {
+        if (finger.readFinger() || nfc.readCardID() || Web.rcvCmd()) {
             lock.unLock();
         }
     }
+    OTA.update();
 }

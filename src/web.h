@@ -2,26 +2,38 @@
 #define WEB_H
 
 #include "http.h"
-#include <ESP8266WiFi.h>
-#include <Ticker.h>
+#include "secrets.h"
+// #include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+// #include <Ticker.h>
 
-class Web {
+class WebClass {
   private:
-    const char *SSID = "飞机杯里泡枸杞_2.4G";
-    const char *PASSWORD = "T1620183";
-    const char *HOST = "door.steelblue.cn";
-    // const char *HOST = "10.0.0.222";
-    const int PORT = 20183;
-    WiFiClient client;
-    Ticker tickerPulse;
+    const char *SSID = WIFI_SSID;
+    const char *PASSWORD = WIFI_PASSWORD;
+    const char *HOST = REMOTE_HOST;
+    const int PORT = REMOTE_PORT;
+    // WiFiClient client;
+    // Ticker tickerPulse;
+    static void handleData(void *arg, AsyncClient *client, void *data,
+                           size_t len);
+    static void onConnect(void *arg, AsyncClient *client);
+    static void onDisonnect(void *arg, AsyncClient *client);
+    static void onError(void *arg, AsyncClient *client, err_t err);
+    static void replyToServer(void *arg);
+    AsyncClient client;
 
   public:
-    Web(/* args */);
+    bool cmdRcved;
+    WebClass();
     void connectWifi();
     void connectServer();
-    bool readServer();
+    // bool readServer();
     int readSerial();
-    void sendPulse();
+    // void sendPulse();
+    bool rcvCmd();
 };
+
+extern WebClass Web;
 
 #endif

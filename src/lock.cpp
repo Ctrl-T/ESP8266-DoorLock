@@ -1,17 +1,19 @@
 #include "lock.h"
 
-Lock::Lock() { locked = true; }
+Lock::Lock(int pinLock, int pinLed) : pinLock(pinLock), pinLed(pinLed) {
+    locked = true;
+}
 
 /**
  * @brief 初始化为锁门状态
  **/
 void Lock::init() {
-    servo.attach(PIN_LOCK);
+    servo.attach(pinLock);
     pos = servo.read();
     rotateTo(LOCK_POS);
     servo.detach();
     pinMode(PIN_LED, OUTPUT);
-    digitalWrite(PIN_LED, LOW);
+    digitalWrite(pinLed, LOW);
 }
 
 /**

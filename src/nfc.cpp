@@ -54,7 +54,7 @@ bool NFC::CheckSumIn(uint8 *buf, int len) {
 /**
  * @brief 检查卡号
  * @retval 卡号是否在列表中
- * 
+ *
  **/
 bool NFC::isInList(uint8 *id) {
     bool inList = false;

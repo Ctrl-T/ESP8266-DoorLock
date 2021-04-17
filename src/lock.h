@@ -5,9 +5,6 @@
 #include <Servo.h>
 #include <Ticker.h>
 
-#define LOCK_POS 45   // 关锁时所处位置
-#define UNLOCK_POS 90 // 开锁后所处位置
-
 class Lock {
   private:
     Servo servo;
@@ -15,9 +12,12 @@ class Lock {
     void rotateTo(int);
     Ticker tickerOpen;
     bool locked;
+    const int LOCK_POS = 45;   // 关锁时所处位置
+    const int UNLOCK_POS = 90; // 开锁后所处位置
+    const int pinLock, pinLed;
 
   public:
-    Lock();
+    Lock(int pinLock, int pinLed);
     void lockUp();
     void unLock();
     void init();

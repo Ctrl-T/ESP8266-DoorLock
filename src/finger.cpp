@@ -38,7 +38,7 @@ const u8 CMD_DATA[][26] = {
      0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x01},
 };
-Finger::Finger(/* args */) : serialFinger(PIN_FNGR_RX, PIN_FNGR_TX) {}
+Finger::Finger(int pinRx, int pinTx) : serialFinger(pinRx, pinTx) {}
 
 /**
  * @brief 初始化软串口
@@ -65,7 +65,7 @@ bool Finger::readFinger() {
     sendCmd(CMD_LED_ALL_OFF);
     sendCmd(CMD_FINGER_DETECT);
     if (recvBuff[10] != 1) {
-        // Serial.println("无指纹按下");
+        // 无指纹按下
         return false;
     }
     sendCmd(CMD_GET_IMAGE);
@@ -74,17 +74,16 @@ bool Finger::readFinger() {
         return false;
     }
 
-    /* 生成指纹特征并验证是否匹配已录入的指纹 */
+    // 生成指纹特征并验证是否匹配已录入的指纹
     sendCmd(CMD_GENERATE_0);
     sendCmd(CMD_SEARCH_FINGERPRINT);
     if (recvBuff[6] == 0x05 && recvBuff[10] > 0) {
-        /* 绿灯亮，表示指纹匹配或者指纹录入完成，控制继电器开门 */
+        // 指纹匹配成功
         Serial.println("指纹比对成功");
         sendCmd(CMD_LED_GREEN_ON);
         return true;
-    }
-    /* 指纹数据和录入过的都不匹配，亮红灯 */
-    else {
+    } else {
+        // 指纹数据和录入过的都不匹配，亮红灯
         sendCmd(CMD_LED_RED_ON);
         Serial.println("指纹比对失败");
         return false;

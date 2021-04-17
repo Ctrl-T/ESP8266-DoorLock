@@ -1,16 +1,14 @@
 #include "http.h"
-HTTPClient Http::client;
-WiFiClient Http::wifi;
-Http::Http(/* args */) {}
+HttpClass::HttpClass(/* args */) {}
 
 /**
  * @brief 向pushplus推送消息
  **/
-void Http::pushplus(const char *content, const char *title) {
+void HttpClass::pushplus(const char *content, const char *title) {
     if (title == NULL) {
         title = content;
     }
-    client.begin(wifi, String(HOST) + URL + "?token=" + TOKEN + "&title=" +
+    client.begin(wifi, String(URL) + "?token=" + TOKEN + "&title=" +
                            urlEncode(title) + "&content=" + urlEncode(content));
     int httpResponseCode = client.GET();
     Serial.println(client.getString());
@@ -23,7 +21,7 @@ void Http::pushplus(const char *content, const char *title) {
 /**
  * @brief 文字编码进URL
  **/
-String Http::urlEncode(String str) {
+String HttpClass::urlEncode(String str) {
     String encodedString = "";
     char c;
     char code0;
@@ -56,8 +54,10 @@ String Http::urlEncode(String str) {
 /**
  * @brief 连续工作时间推送
  **/
-void Http::pulse() {
+void HttpClass::pulse() {
     String minute = String(millis() / (1000 * 60));
     String msg = String("已连续工作 ") + minute + " 分钟";
     pushplus(msg.c_str());
 }
+
+HttpClass Http;
