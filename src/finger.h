@@ -1,13 +1,14 @@
 #ifndef FINGER_H
 #define FINFER_H
 
+#include "config.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
 /* 指纹模块控制命令 */
 typedef enum {
     CMD_LED_RED_ON,         // 亮红灯
-    CMD_LED_GREEN_ON,       // 亮绿灯
+    CMD_LED_BLUE_ON,       // 亮绿灯
     CMD_LED_YELLOW_ON,      // 亮黄灯
     CMD_LED_ALL_OFF,        // 熄灭所有灯
     CMD_FINGER_DETECT,      // 检测有无手指按下

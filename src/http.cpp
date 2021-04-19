@@ -11,10 +11,10 @@ void HttpClass::pushplus(const char *content, const char *title) {
     client.begin(wifi, String(URL) + "?token=" + TOKEN + "&title=" +
                            urlEncode(title) + "&content=" + urlEncode(content));
     int httpResponseCode = client.GET();
-    Serial.println(client.getString());
+    DEBUG_PRINTLN(client.getString());
     if (httpResponseCode != 200) {
-        Serial.println("fail when sending msg to pushplus");
-        Serial.printf("http code: %d\n", httpResponseCode);
+        DEBUG_PRINTLN("fail when sending msg to pushplus");
+        DEBUG_PRINTF("http code: %d\n", httpResponseCode);
     }
 }
 

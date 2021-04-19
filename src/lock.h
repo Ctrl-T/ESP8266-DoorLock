@@ -1,23 +1,22 @@
 #ifndef LOCK_H
 #define LOCK_H
 
-#include "pins.h"
+#include "config.h"
 #include <Servo.h>
 #include <Ticker.h>
 
 class Lock {
   private:
     Servo servo;
-    int pos;
     void rotateTo(int);
     Ticker tickerOpen;
     bool locked;
-    const int LOCK_POS = 45;   // 关锁时所处位置
-    const int UNLOCK_POS = 90; // 开锁后所处位置
-    const int pinLock, pinLed;
+    const int LOCK_POS = 90;   // 关锁时所处位置
+    const int UNLOCK_POS = 50; // 开锁后所处位置
+    const int pinLock;
 
   public:
-    Lock(int pinLock, int pinLed);
+    Lock(int pinLock);
     void lockUp();
     void unLock();
     void init();

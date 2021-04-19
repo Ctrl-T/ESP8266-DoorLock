@@ -17,17 +17,17 @@ bool NFC::readCardID() {
         if (CheckSumIn(revdata, revdata[1])) {
             if (revdata[4] == 0x00) {
                 // 数组revdata[7]开始4字节为卡号
-                Serial.print("Card ID: ");
+                DEBUG_PRINT("Card ID: ");
                 for (size_t i = 7; i <= 10; i++) {
-                    Serial.printf("%x ", revdata[i]);
+                    DEBUG_PRINTF("%x ", revdata[i]);
                 }
-                Serial.println();
+                DEBUG_PRINTLN();
                 if (isInList(revdata + 7)) {
-                    Serial.println("Card verify pass!");
+                    DEBUG_PRINTLN("Card verify pass!");
                     return true;
                 }
             } else {
-                Serial.println("fail to Read card id!");
+                DEBUG_PRINTLN("fail to Read card id!");
             }
         }
     }

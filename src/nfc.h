@@ -1,6 +1,7 @@
 #ifndef NFC_H
 #define NFC_H
 
+#include "config.h"
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #define LIST_LEN 4

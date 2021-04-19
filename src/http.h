@@ -1,7 +1,7 @@
 #ifndef HTTP_H
 #define HTTP_H
 
-#include "secrets.h"
+#include "config.h"
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
 

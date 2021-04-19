@@ -6,13 +6,13 @@ void OTAClass::init() {
     MDNS.begin(host);
     server.on("/", HTTP_GET, [&]() {
         server.sendHeader("Connection", "close");
-        server.send(200, "text/html", serverIndex);
+        server.send(200, "text/html; charset=UTF-8", serverIndex);
     });
     server.on(
         "/update", HTTP_POST,
         [&]() {
             server.sendHeader("Connection", "close");
-            server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+            server.send(200, "text/plain; charset=UTF-8", (Update.hasError()) ? "FAIL" : "OK");
             ESP.restart();
         },
         [&]() {
@@ -20,7 +20,7 @@ void OTAClass::init() {
             if (upload.status == UPLOAD_FILE_START) {
                 Serial.setDebugOutput(true);
                 WiFiUDP::stopAll();
-                Serial.printf("Update: %s\n", upload.filename.c_str());
+                DEBUG_PRINTF("Update: %s\n", upload.filename.c_str());
                 uint32_t maxSketchSpace =
                     (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
                 if (!Update.begin(
@@ -35,7 +35,7 @@ void OTAClass::init() {
             } else if (upload.status == UPLOAD_FILE_END) {
                 if (Update.end(true)) { // true to set the size to the
                                         // current progress
-                    Serial.printf("Update Success: %u\nRebooting...\n",
+                    DEBUG_PRINTF("Update Success: %u\nRebooting...\n",
                                   upload.totalSize);
                 } else {
                     Update.printError(Serial);
@@ -47,7 +47,7 @@ void OTAClass::init() {
     server.begin();
     MDNS.addService("http", "tcp", 80);
 
-    Serial.printf("Ready! Open http://%s.local in your browser\n", host);
+    DEBUG_PRINTF("Ready! Open http://%s.local in your browser\n", host);
 }
 
 void OTAClass::update() {

@@ -1,6 +1,6 @@
 #include "lock.h"
 
-Lock::Lock(int pinLock, int pinLed) : pinLock(pinLock), pinLed(pinLed) {
+Lock::Lock(int pinLock) : pinLock(pinLock) {
     locked = true;
 }
 
@@ -9,40 +9,41 @@ Lock::Lock(int pinLock, int pinLed) : pinLock(pinLock), pinLed(pinLed) {
  **/
 void Lock::init() {
     servo.attach(pinLock);
-    pos = servo.read();
-    rotateTo(LOCK_POS);
-    servo.detach();
-    pinMode(PIN_LED, OUTPUT);
-    digitalWrite(pinLed, LOW);
+    lockUp();
+    // pos = servo.read();
+    // rotateTo(LOCK_POS);
+    // servo.detach();
 }
 
 /**
  * @brief 旋转到目标位置
  **/
 void Lock::rotateTo(int destPos) {
-    if (destPos > 180 || destPos < 0 || destPos == pos) {
+    if (destPos > 180 || destPos < 0) {
         return;
     }
-    int step = 0; // 每次转动的角度
-    step = (destPos > pos) ? 1 : -1;
-    // Serial.printf("pos:%d, destpos:%d, step:%d\n", pos, destPos, step);
-    while ((destPos - pos) * step >= 0) { // 从当前位置开始一度一度转向目标角度
-        pos += step;
-        servo.write(pos);
-        // Serial.printf("%d ", pos);
-        delay(15);
-    }
+    servo.write(destPos);
+    delay(300);
+
+    // int step = 0; // 每次转动的角度
+    // step = (destPos > pos) ? 1 : -1;
+    // // DEBUG_PRINTF("pos:%d, destpos:%d, step:%d\n", pos, destPos, step);
+    // while ((destPos - pos) * step >= 0) { // 从当前位置开始一度一度转向目标角度
+    //     pos += step;
+    //     servo.write(pos);
+    //     // DEBUG_PRINTF("%d ", pos);
+    //     delay(15);
+    // }
 }
 
 /**
  * @brief 关锁
  **/
 void Lock::lockUp() {
-    Serial.println("LockUp...");
-    digitalWrite(PIN_LED, LOW);
+    DEBUG_PRINTLN("LockUp...");
     rotateTo(LOCK_POS);
     locked = true;
-    servo.detach();
+    // servo.detach();
 }
 
 /**
@@ -52,9 +53,8 @@ void Lock::unLock() {
     if (!locked) {
         return;
     }
-    servo.attach(PIN_LOCK);
-    Serial.println("Unlock...");
-    digitalWrite(PIN_LED, HIGH);
+    // servo.attach(PIN_LOCK);
+    DEBUG_PRINTLN("Unlock...");
     rotateTo(UNLOCK_POS);
     locked = false;
     tickerOpen.once_scheduled(3, std::bind(&Lock::lockUp, this));
