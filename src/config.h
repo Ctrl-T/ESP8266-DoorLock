@@ -18,9 +18,9 @@
 #define PIN_OLED_SDA 2  // OLED数据
 #define PIN_OLED_RES 16 // OLED复位
 
-// #define DEBUG // debug开关
+#define DEBUG_DOORLOCK // debug开关
 
-#ifdef DEBUG
+#ifdef DEBUG_DOORLOCK
 #define DEBUG_PRINT(x) Serial.print(x)
 #define DEBUG_PRINTLN(x) Serial.println(x)
 #define DEBUG_PRINTF(x, ...) Serial.printf(x, __VA_ARGS__)

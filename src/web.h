@@ -2,6 +2,7 @@
 #define WEB_H
 
 #include "http.h"
+#include "OTA.h"
 #include "config.h"
 #include <ESPAsyncTCP.h>
 // #include <Ticker.h>
@@ -21,9 +22,11 @@ class WebClass {
     static void replyToServer(void *arg);
     AsyncClient client;
     bool cmdRcved;
+    WiFiEventHandler staConnectedHandler;
 
   public:
     WebClass();
+    void init();
     void connectWifi();
     void connectServer();
     int readSerial();

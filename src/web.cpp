@@ -3,6 +3,8 @@
 
 WebClass::WebClass() { cmdRcved = false; }
 
+void WebClass::init() { connectWifi(); }
+
 /**
  * @brief 连接wifi
  **/
@@ -13,18 +15,16 @@ void WebClass::connectWifi() {
     DEBUG_PRINTLN(SSID);
 
     WiFi.mode(WIFI_STA);
+    staConnectedHandler = WiFi.onStationModeGotIP(
+        [&](const WiFiEventStationModeGotIP &event) {
+            Serial.print("WiFi connected, IP: ");
+            Serial.println(WiFi.localIP());
+            connectServer();
+            OTA.init();
+        });
     WiFi.begin(SSID, PASSWORD);
-
-    if (WiFi.waitForConnectResult(6000) != WL_CONNECTED) {
-        DEBUG_PRINTLN("fail to connect WiFi");
-        return;
-    }
-
     WiFi.setAutoReconnect(true);
-    DEBUG_PRINTLN("");
-    DEBUG_PRINTLN("WiFi connected");
-    DEBUG_PRINTLN("IP address: ");
-    DEBUG_PRINTLN(WiFi.localIP());
+    return;
 }
 
 /**
@@ -65,7 +65,6 @@ void WebClass::onConnect(void *arg, AsyncClient *client) {
     if (client->space() > 32 && client->canSend()) {
         client->write("Hello from ESP8266");
     }
-    // replyToServer(client);
     DEBUG_PRINTLN("成功连接服务器");
     // Http.pushplus("成功连接服务器");
 }
