@@ -17,6 +17,7 @@
 #define PIN_OLED_SCL 14 // OLED时钟
 #define PIN_OLED_SDA 2  // OLED数据
 #define PIN_OLED_RES 16 // OLED复位
+#define PIN_CMD_INTR 4  // NFC和指纹中断
 
 #define DEBUG_DOORLOCK // debug开关
 

@@ -1,5 +1,6 @@
 #include "display.h"
-Display::Display(int pinSda, int pinScl, int pinRes) : oled(pinSda, pinScl), pinRes(pinRes) {}
+Display::Display(int pinSda, int pinScl, int pinRes)
+    : display(0x3c, pinSda, pinScl), pinRes(pinRes), CPCx(0) {}
 
 void Display::init() {
     // reset
@@ -8,9 +9,8 @@ void Display::init() {
     delay(200);
     digitalWrite(pinRes, HIGH);
     // init oled
-    oled.begin();
-    oled.on();
-    oled.print("Hello");
+    display.init();
+    display.flipScreenVertically();
 }
 
 void Display::dispIdle() {
@@ -27,19 +27,24 @@ void Display::dispFail() {
 }
 
 void Display::update() {
-    oled.clear();
+    display.clear();
     switch (state) {
     case idle:
-        oled.print("Hello!", 3, 5);
+        // display.drawXbm(34, 2, CPCLogoWidth, CPCLogoHeight, CPCLogoBits);
+        display.drawXbm(CPCx/10 - 60, 2, CPCLogoWidth, CPCLogoHeight, CPCLogoBits);
+        CPCx++;
+        if (CPCx > 1880) {
+            CPCx = 0;
+        }
         break;
     case success:
-        oled.print("Welcome!", 2, 4);
-        oled.print("PUSH", 4, 6);
+        display.drawXbm(0, 0, QingjinLogoWidth, QingjinLogoHeight,
+                        QingjinLogoBits);
         break;
     case fail:
-        oled.print("Access denied!", 3, 1);
         break;
     default:
         break;
     }
+    display.display();
 }

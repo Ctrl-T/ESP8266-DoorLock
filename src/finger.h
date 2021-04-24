@@ -8,8 +8,8 @@
 /* 指纹模块控制命令 */
 typedef enum {
     CMD_LED_RED_ON,         // 亮红灯
-    CMD_LED_BLUE_ON,       // 亮绿灯
-    CMD_LED_YELLOW_ON,      // 亮黄灯
+    CMD_LED_BLUE_ON,        // 蓝灯呼吸一次
+    CMD_LED_WHITE_ON,       // 白灯长呼吸
     CMD_LED_ALL_OFF,        // 熄灭所有灯
     CMD_FINGER_DETECT,      // 检测有无手指按下
     CMD_GET_IMAGE,          // 从指纹模块采集指纹数据

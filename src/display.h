@@ -2,14 +2,17 @@
 #define DISPLAY_H
 
 #include <Wire.h>
-#include "OLED.h"
+#include "SSD1306Wire.h"
+#include "logoCPC.h"
+#include "logoQingjin.h"
 enum DispState { idle, success, fail };
 
 class Display {
   private:
-    OLED oled;
+    SSD1306Wire display;
     DispState state;
     const int pinRes;
+    int CPCx;
 
   public:
     Display(int pinSda, int pinScl, int pinRes);
