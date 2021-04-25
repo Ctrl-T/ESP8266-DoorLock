@@ -19,7 +19,7 @@
 #define PIN_OLED_RES 16 // OLED复位
 #define PIN_CMD_INTR 4  // NFC和指纹中断
 
-#define DEBUG_DOORLOCK // debug开关
+// #define DEBUG_DOORLOCK // debug开关
 
 #ifdef DEBUG_DOORLOCK
 #define DEBUG_PRINT(x) Serial.print(x)

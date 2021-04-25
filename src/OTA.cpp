@@ -47,7 +47,7 @@ void OTAClass::init() {
     server.begin();
     MDNS.addService("http", "tcp", 80);
 
-    DEBUG_PRINTF("Ready! Open http://%s.local in your browser\n", host);
+    DEBUG_PRINTF("OTA ready! Open http://%s.local in your browser\n", host);
 }
 
 void OTAClass::update() {

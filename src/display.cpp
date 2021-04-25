@@ -1,7 +1,10 @@
 #include "display.h"
 Display::Display(int pinSda, int pinScl, int pinRes)
-    : display(0x3c, pinSda, pinScl), pinRes(pinRes), CPCx(0) {}
+    : display(0x3c, pinSda, pinScl), pinRes(pinRes) {}
 
+/**
+ * @brief 初始化OLED
+ **/
 void Display::init() {
     // reset
     pinMode(pinRes, OUTPUT);
@@ -11,40 +14,77 @@ void Display::init() {
     // init oled
     display.init();
     display.flipScreenVertically();
+    dispIdle();
 }
 
+/**
+ * @brief 显示空闲时图案
+ **/
 void Display::dispIdle() {
-    state = idle;
-    update();
-}
-void Display::dispSuccess() {
-    state = success;
-    update();
-}
-void Display::dispFail() {
-    state = fail;
-    update();
+    if (state == idle) {
+        display.clear();
+        clearFrame();
+        switch (iFrame) {
+        case 0: // ☭
+            addFrame(logoCPCBits[0]);
+            break;
+        case 1: // <☭>
+            addFrame(logoCPCBits[0]);
+            addFrame(logoCPCBits[1]);
+            break;
+        case 2: // <<☭>>
+            addFrame(logoCPCBits[0]);
+            addFrame(logoCPCBits[1]);
+            addFrame(logoCPCBits[2]);
+            break;
+        case 3: // < ☭ >
+            addFrame(logoCPCBits[0]);
+            addFrame(logoCPCBits[2]);
+            break;
+        default:
+            break;
+        }
+        display.drawXbm(0, 0, logoCPCWidth, logoCPCHeight, frame);
+        display.display();
+        iFrame = (iFrame + 1) % 4;
+    }
+    tickerFrame.once_ms_scheduled(300, std::bind(&Display::dispIdle, this));
 }
 
-void Display::update() {
+/**
+ * @brief 显示开锁时图案
+ **/
+void Display::dispSuccess() {
     display.clear();
-    switch (state) {
-    case idle:
-        // display.drawXbm(34, 2, CPCLogoWidth, CPCLogoHeight, CPCLogoBits);
-        display.drawXbm(CPCx/10 - 60, 2, CPCLogoWidth, CPCLogoHeight, CPCLogoBits);
-        CPCx++;
-        if (CPCx > 1880) {
-            CPCx = 0;
-        }
-        break;
-    case success:
-        display.drawXbm(0, 0, QingjinLogoWidth, QingjinLogoHeight,
-                        QingjinLogoBits);
-        break;
-    case fail:
-        break;
-    default:
-        break;
-    }
+    display.drawXbm(0, 0, QingjinLogoWidth, QingjinLogoHeight, QingjinLogoBits);
     display.display();
+}
+
+/**
+ * @brief 显示失败时图案
+ **/
+void Display::dispFail() {}
+
+/**
+ * @brief 设置图案状态
+ **/
+void Display::setState(DispState newState) {
+    state = newState;
+    if (state == success) {
+        dispSuccess();
+    }
+}
+
+/**
+ * @brief 清空图案缓冲区
+ **/
+void Display::clearFrame() { memset(frame, 0, FRAME_LEN); }
+
+/**
+ * @brief 往缓冲区上叠加图案（按位或）
+ **/
+void Display::addFrame(const uint8 *newFrame) {
+    for (int i = 0; i < FRAME_LEN; ++i) {
+        frame[i] |= newFrame[i];
+    }
 }

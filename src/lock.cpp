@@ -10,9 +10,6 @@ Lock::Lock(int pinLock) : pinLock(pinLock) {
 void Lock::init() {
     servo.attach(pinLock);
     lockUp();
-    // pos = servo.read();
-    // rotateTo(LOCK_POS);
-    // servo.detach();
 }
 
 /**
@@ -24,16 +21,6 @@ void Lock::rotateTo(int destPos) {
     }
     servo.write(destPos);
     delay(300);
-
-    // int step = 0; // 每次转动的角度
-    // step = (destPos > pos) ? 1 : -1;
-    // // DEBUG_PRINTF("pos:%d, destpos:%d, step:%d\n", pos, destPos, step);
-    // while ((destPos - pos) * step >= 0) { // 从当前位置开始一度一度转向目标角度
-    //     pos += step;
-    //     servo.write(pos);
-    //     // DEBUG_PRINTF("%d ", pos);
-    //     delay(15);
-    // }
 }
 
 /**
@@ -43,7 +30,6 @@ void Lock::lockUp() {
     DEBUG_PRINTLN("LockUp...");
     rotateTo(LOCK_POS);
     locked = true;
-    // servo.detach();
 }
 
 /**
@@ -53,7 +39,6 @@ void Lock::unLock() {
     if (!locked) {
         return;
     }
-    // servo.attach(PIN_LOCK);
     DEBUG_PRINTLN("Unlock...");
     rotateTo(UNLOCK_POS);
     locked = false;
