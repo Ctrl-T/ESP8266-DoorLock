@@ -15,40 +15,74 @@ void Display::init() {
     display.init();
     display.flipScreenVertically();
     dispIdle();
+    setNormal();
 }
 
+// /**
+//  * @brief 显示空闲时图案
+//  **/
+// void Display::dispIdle() {
+//     if (state == idle) {
+//         display.clear();
+//         clearFrame();
+//         switch (iFrame) {
+//         case 0: // ☭
+//             addFrame(logoCPCBits[0]);
+//             break;
+//         case 1: // <☭>
+//             addFrame(logoCPCBits[0]);
+//             addFrame(logoCPCBits[1]);
+//             break;
+//         case 2: // <<☭>>
+//             addFrame(logoCPCBits[0]);
+//             addFrame(logoCPCBits[1]);
+//             addFrame(logoCPCBits[2]);
+//             break;
+//         case 3: // < ☭ >
+//             addFrame(logoCPCBits[0]);
+//             addFrame(logoCPCBits[2]);
+//             break;
+//         default:
+//             break;
+//         }
+//         display.drawXbm(0, 0, logoCPCWidth, logoCPCHeight, frame);
+//         display.display();
+//         iFrame = (iFrame + 1) % 4;
+//     }
+//     tickerFrame.once_ms_scheduled(300, std::bind(&Display::dispIdle, this));
+// }
 /**
  * @brief 显示空闲时图案
  **/
 void Display::dispIdle() {
     if (state == idle) {
         display.clear();
-        clearFrame();
-        switch (iFrame) {
-        case 0: // ☭
-            addFrame(logoCPCBits[0]);
-            break;
-        case 1: // <☭>
-            addFrame(logoCPCBits[0]);
-            addFrame(logoCPCBits[1]);
-            break;
-        case 2: // <<☭>>
-            addFrame(logoCPCBits[0]);
-            addFrame(logoCPCBits[1]);
-            addFrame(logoCPCBits[2]);
-            break;
-        case 3: // < ☭ >
-            addFrame(logoCPCBits[0]);
-            addFrame(logoCPCBits[2]);
-            break;
-        default:
-            break;
+        // arrows
+        for (int i = 0; i < 3; ++i) {
+            display.drawXbm(35 - i * 20 - offsetArrow, 15, arrowWidth,
+                            arrowHeight, arrowLBits);
+            display.drawXbm(69 + i * 20 + offsetArrow, 15, arrowWidth,
+                            arrowHeight, arrowRBits);
         }
-        display.drawXbm(0, 0, logoCPCWidth, logoCPCHeight, frame);
+        // mask
+        display.setColor(BLACK);
+        display.fillRect(39, 15, 50, 33);
+        display.drawXbm(23, 15, arrowWidth, arrowHeight, arrowLBits);
+        display.drawXbm(31, 15, arrowWidth, arrowHeight, arrowLBits);
+        display.drawXbm(73, 15, arrowWidth, arrowHeight, arrowRBits);
+        display.drawXbm(81, 15, arrowWidth, arrowHeight, arrowRBits);
+        display.setColor(WHITE);
+        // CPC logo
+        display.drawXbm(42, 10, logoCPCWidth, logoCPCHeight, logoCPCBits);
+        // horizontal lines
+        for (int i = 0; i < 3; ++i) {
+            display.drawHorizontalLine(0, 4 + i, 128);
+            display.drawHorizontalLine(0, 57 + i, 128);
+        }
         display.display();
-        iFrame = (iFrame + 1) % 4;
+        offsetArrow = (offsetArrow + 1) % 20;
     }
-    tickerFrame.once_ms_scheduled(300, std::bind(&Display::dispIdle, this));
+    tickerFrame.once_ms_scheduled(30, std::bind(&Display::dispIdle, this));
 }
 
 /**
@@ -76,15 +110,17 @@ void Display::setState(DispState newState) {
 }
 
 /**
- * @brief 清空图案缓冲区
+ * @brief 使图案反相显示
  **/
-void Display::clearFrame() { memset(frame, 0, FRAME_LEN); }
+void Display::setReverse() {
+    display.invertDisplay();
+    tickerReverse.once_scheduled(60, std::bind(&Display::setNormal, this));
+}
 
 /**
- * @brief 往缓冲区上叠加图案（按位或）
+ * @brief 使图案正常显示
  **/
-void Display::addFrame(const uint8 *newFrame) {
-    for (int i = 0; i < FRAME_LEN; ++i) {
-        frame[i] |= newFrame[i];
-    }
+void Display::setNormal() {
+    display.normalDisplay();
+    tickerReverse.once_scheduled(60, std::bind(&Display::setReverse, this));
 }

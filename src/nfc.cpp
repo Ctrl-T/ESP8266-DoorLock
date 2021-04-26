@@ -2,7 +2,8 @@
 NFC::NFC() {}
 
 /**
- * @brief 读取NFC卡号，在列表中则返回真
+ * @brief 读取NFC卡号
+ * @retval 是否在列表中
  **/
 bool NFC::readCardID() {
     uint8 revdata[32];

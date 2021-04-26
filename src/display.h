@@ -7,7 +7,6 @@
 #include <Ticker.h>
 #include <Wire.h>
 
-#define FRAME_LEN 1024
 enum DispState { idle, success, fail };
 
 class Display {
@@ -16,15 +15,14 @@ class Display {
     DispState state;              // 当前状态
     const int pinRes;             // rest引脚
     Ticker tickerFrame;           // 帧变换的计时器
+    Ticker tickerReverse;           // 帧变换的计时器
     int iFrame = 0;               // 帧计数
-    uint8 frame[FRAME_LEN] = {0}; // 缓冲区
-    const uint8 *logoCPCBits[3] = {logoCPC0Bits, logoCPC1Bits,
-                                   logoCPC2Bits}; // 动画帧
-    void clearFrame();
-    void addFrame(const uint8 *newFrame);
+    int offsetArrow = 0;
     void dispIdle();
     void dispSuccess();
     void dispFail();
+    void setReverse();
+    void setNormal();
 
   public:
     Display(int pinSda, int pinScl, int pinRes);
