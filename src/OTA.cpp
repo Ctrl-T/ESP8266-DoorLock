@@ -12,7 +12,9 @@ void OTAClass::init() {
         "/update", HTTP_POST,
         [&]() {
             server.sendHeader("Connection", "close");
-            server.send(200, "text/plain; charset=UTF-8", (Update.hasError()) ? "FAIL" : "OK");
+            server.send(200, "text/html; charset=UTF-8", Update.hasError() ? "更新失败" : "更新成功");
+            // server.send(200, "text/plain; charset=UTF-8", "OK");
+            delay(2000);
             ESP.restart();
         },
         [&]() {
