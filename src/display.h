@@ -1,33 +1,37 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include "OLEDDisplayUi.h"
 #include "SSD1306Wire.h"
 #include "logoCPC.h"
 #include "logoQingjin.h"
 #include <Ticker.h>
 #include <Wire.h>
 
-enum DispState { idle, success, fail };
+enum DispState : uint8_t { idle, success, fail };
 
 class Display {
   private:
-    SSD1306Wire display;          // OLED实例
-    DispState state;              // 当前状态
-    const int pinRes;             // rest引脚
-    Ticker tickerFrame;           // 帧变换的计时器
-    Ticker tickerReverse;           // 帧变换的计时器
-    int iFrame = 0;               // 帧计数
-    int offsetArrow = 0;
-    void dispIdle();
-    void dispSuccess();
+    SSD1306Wire display; // OLED实例
+    OLEDDisplayUi ui;
+    const int pinRes;     // rest引脚
+    Ticker tickerReverse; // 帧变换的计时器
+    static void dispIdle(OLEDDisplay *display, OLEDDisplayUiState *state,
+                         int16_t x, int16_t y);
+    static void dispSuccess(OLEDDisplay *display, OLEDDisplayUiState *state,
+                            int16_t x, int16_t y);
     void dispFail();
     void setReverse();
     void setNormal();
+    FrameCallback frames[2] = {dispIdle, dispSuccess};
+    int frameCount = 2;
+    DispState state;
 
   public:
     Display(int pinSda, int pinScl, int pinRes);
     void init();
     void setState(DispState newState);
+    void update();
 };
 
 #endif

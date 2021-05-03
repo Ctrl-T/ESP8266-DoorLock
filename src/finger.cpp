@@ -38,15 +38,14 @@ const u8 CMD_DATA[][26] = {
      0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x01},
 };
-Finger::Finger(int pinRx, int pinTx) : serialFinger(pinRx, pinTx) {}
+Finger::Finger(int pinRx, int pinTx)
+    : Opener("finger"), serialFinger(pinRx, pinTx) {}
 
 /**
  * @brief 初始化软串口
  * @retval None
  */
-void Finger::init() {
-    serialFinger.begin(115200);
-}
+void Finger::init() { serialFinger.begin(115200); }
 /**
  * @brief  根据枚举值的不同发送不同的指令给指纹模块
  * @param  cmd 指定命令 @ref Command_t
@@ -62,7 +61,7 @@ void Finger::sendCmd(Command_t cmd) {
  * @brief  尝试指纹解锁
  * @retval 是否比对成功
  */
-bool Finger::readFinger() {
+bool Finger::checkOpenInstr() {
     /* 指示灯灭, 阻塞等待指纹模块上有手指按下 */
     // sendCmd(CMD_LED_ALL_OFF);
     sendCmd(CMD_FINGER_DETECT);
@@ -84,12 +83,14 @@ bool Finger::readFinger() {
     sendCmd(CMD_SEARCH_FINGERPRINT);
     if (recvBuff[6] == 0x05) {
         // 指纹匹配成功
+        addCntSuccess();
         DEBUG_PRINTLN("指纹比对成功");
         sendCmd(CMD_LED_WHITE_ON);
         return true;
     } else {
         // 指纹数据和录入过的都不匹配，亮红灯
         sendCmd(CMD_LED_RED_ON);
+        addCntFail();
         DEBUG_PRINTLN("指纹比对失败");
         return false;
     }

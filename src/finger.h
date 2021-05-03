@@ -2,6 +2,7 @@
 #define FINFER_H
 
 #include "config.h"
+#include "opener.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
@@ -25,7 +26,7 @@ typedef enum {
 /* 控制命令数据，和前面的枚举一一对应 */
 extern const u8 CMD_DATA[][26];
 
-class Finger {
+class Finger : public Opener {
   private:
     SoftwareSerial serialFinger;
     /* 接收缓冲区 */
@@ -34,7 +35,7 @@ class Finger {
   public:
     Finger(int pinRx, int pinTx);
     void sendCmd(Command_t cmd);
-    bool readFinger();
+    bool checkOpenInstr();
     void init();
 };
 

@@ -1,11 +1,11 @@
 #include "nfc.h"
-NFC::NFC() {}
+NFC::NFC() : Opener("nfc") {}
 
 /**
  * @brief 读取NFC卡号
  * @retval 是否在列表中
  **/
-bool NFC::readCardID() {
+bool NFC::checkOpenInstr() {
     uint8 revdata[32];
     int len = 0;
     if (Serial.available() <= 0)
@@ -25,6 +25,7 @@ bool NFC::readCardID() {
                 DEBUG_PRINTLN();
                 if (isInList(revdata + 7)) {
                     DEBUG_PRINTLN("Card verify pass!");
+                    addCntSuccess();
                     return true;
                 }
             } else {
@@ -32,6 +33,7 @@ bool NFC::readCardID() {
             }
         }
     }
+    addCntFail();
     return false;
 }
 

@@ -1,7 +1,7 @@
 #include "web.h"
 #include "http.h"
 
-WebClass::WebClass() { cmdRcved = false; }
+WebClass::WebClass() : Opener("web") { cmdOpenRcvd = false; }
 
 void WebClass::init() { connectWifi(); }
 
@@ -15,10 +15,10 @@ void WebClass::connectWifi() {
     DEBUG_PRINTLN(SSID);
 
     WiFi.mode(WIFI_STA);
-    staConnectedHandler = WiFi.onStationModeGotIP(
-        [&](const WiFiEventStationModeGotIP &event) {
-            Serial.print("WiFi connected, IP: ");
-            Serial.println(WiFi.localIP());
+    staConnectedHandler =
+        WiFi.onStationModeGotIP([&](const WiFiEventStationModeGotIP &event) {
+            DEBUG_PRINT("WiFi connected, IP: ");
+            DEBUG_PRINTLN(WiFi.localIP());
             connectServer();
             OTA.init();
         });
@@ -50,9 +50,15 @@ void WebClass::handleData(void *arg, AsyncClient *client, void *data,
                           size_t len) {
     DEBUG_PRINT("收到网络命令：");
     DEBUG_PRINTLN((char *)data);
+    WebClass *web = reinterpret_cast<WebClass *>(arg);
     // Http::pushplus((String("收到网络命令：") + (char *)data).c_str());
     if (strncmp((char *)data, "OPEN\n", len) == 0) {
-        reinterpret_cast<WebClass *>(arg)->cmdRcved = true;
+        web->addCntSuccess();
+        web->cmdOpenRcvd = true;
+    } else if (strncmp((char *)data, "LOG\n", len) == 0) {
+        web->cmdLogRcvd = true;
+    } else {
+        web->addCntFail();
     }
 }
 
@@ -106,12 +112,33 @@ int WebClass::readSerial() {
  * @brief 读取网络命令
  * @retval 是否收到开锁信号
  **/
-bool WebClass::rcvCmd() {
-    if (cmdRcved) {
-        cmdRcved = false;
+bool WebClass::checkOpenInstr() {
+    if (cmdOpenRcvd) {
+        cmdOpenRcvd = false;
         return true;
     }
     return false;
+}
+
+/**
+ * @brief 读取网络命令
+ * @retval 是否收到读取日志信号
+ **/
+bool WebClass::checkLogInstr() {
+    if (cmdLogRcvd) {
+        cmdLogRcvd = false;
+        return true;
+    }
+    return false;
+}
+
+void WebClass::writeLogs(String logs[], uint size) {
+    String log("-log-");
+    for (uint i = 0; i < size; ++i) {
+        log += logs[i] + "\n";
+    }
+    log += String("-/log-");
+    client.write(log.c_str(), log.length());
 }
 
 WebClass Web;

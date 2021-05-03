@@ -1,13 +1,15 @@
 #ifndef WEB_H
 #define WEB_H
 
-#include "http.h"
 #include "OTA.h"
 #include "config.h"
+#include "http.h"
+#include "opener.h"
+#include "WString.h"
 #include <ESPAsyncTCP.h>
 // #include <Ticker.h>
 
-class WebClass {
+class WebClass : public Opener {
   private:
     const char *SSID = WIFI_SSID;
     const char *PASSWORD = WIFI_PASSWORD;
@@ -21,7 +23,7 @@ class WebClass {
     static void onTimeout(void *arg, AsyncClient *client, u32_t time);
     static void replyToServer(void *arg);
     AsyncClient client;
-    bool cmdRcved;
+    bool cmdOpenRcvd, cmdLogRcvd;
     WiFiEventHandler staConnectedHandler;
 
   public:
@@ -31,7 +33,9 @@ class WebClass {
     void connectServer();
     int readSerial();
     // void sendPulse();
-    bool rcvCmd();
+    bool checkOpenInstr();
+    bool checkLogInstr();
+    void writeLogs(String logs[], uint size);
 };
 
 extern WebClass Web;

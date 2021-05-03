@@ -20,7 +20,6 @@ void Lock::rotateTo(int destPos) {
         return;
     }
     servo.write(destPos);
-    delay(300);
 }
 
 /**
@@ -28,8 +27,8 @@ void Lock::rotateTo(int destPos) {
  **/
 void Lock::lockUp() {
     DEBUG_PRINTLN("LockUp...");
-    rotateTo(LOCK_POS);
     locked = true;
+    rotateTo(LOCK_POS);
 }
 
 /**
@@ -39,9 +38,9 @@ void Lock::unLock() {
     if (!locked) {
         return;
     }
+    locked = false;
     DEBUG_PRINTLN("Unlock...");
     rotateTo(UNLOCK_POS);
-    locked = false;
     tickerOpen.once_scheduled(3, std::bind(&Lock::lockUp, this));
 }
 

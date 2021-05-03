@@ -1,0 +1,5 @@
+-log-
+[finger] success: 8 total:10
+[nfc] success:8 total:10
+[web] success:8 total:10
+-/log-

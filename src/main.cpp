@@ -24,14 +24,22 @@ void setup() {
 }
 
 void loop() {
+    // 开锁
     if (lock.isLocked()) {
         display.setState(DispState::idle);
-        if ((isCmdOn && finger.readFinger()) || nfc.readCardID() ||
-            Web.rcvCmd()) {
+        if ((isCmdOn && finger.checkOpenInstr()) || nfc.checkOpenInstr() ||
+            Web.checkOpenInstr()) {
             display.setState(DispState::success);
             lock.unLock();
         }
     }
+    display.update();
+    // 发送日志
+    if (Web.checkLogInstr()) {
+        String logs[] = {finger.getLog(), nfc.getLog(), Web.getLog()};
+        Web.writeLogs(logs, 3);
+    }
+    // OTA
     if (isSwitchOn) {
         OTA.update();
     }

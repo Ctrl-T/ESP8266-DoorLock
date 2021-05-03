@@ -2,11 +2,12 @@
 #define NFC_H
 
 #include "config.h"
+#include "opener.h"
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #define LIST_LEN 4
 
-class NFC {
+class NFC : public Opener {
   private:
     const uint8 ids[LIST_LEN][4] = {{0xc0, 0xac, 0x12, 0x49},
                                     {0x20, 0xd7, 0x14, 0x49},
@@ -15,7 +16,7 @@ class NFC {
 
   public:
     NFC();
-    bool readCardID();
+    bool checkOpenInstr();
     bool CheckSumIn(uint8 *buf, int len);
     bool isInList(uint8 *id);
 };
