@@ -56,8 +56,26 @@ void Display::dispIdle(OLEDDisplay *display, OLEDDisplayUiState *state,
  **/
 void Display::dispSuccess(OLEDDisplay *display, OLEDDisplayUiState *state,
                           int16_t x, int16_t y) {
-    display->drawXbm(x, y, QingjinLogoWidth, QingjinLogoHeight,
-                     QingjinLogoBits);
+    static int offsetArrow = 0;
+    // arrows
+    for (int i = 0; i < 3; ++i) {
+        display->drawXbm(0 - i * 20 + offsetArrow + x, 15 + y, arrowWidth,
+                         arrowHeight, arrowRBits);
+        display->drawXbm(102 + i * 20 - offsetArrow + x, 15 + y, arrowWidth,
+                         arrowHeight, arrowLBits);
+    }
+    // mask
+    display->setColor(BLACK);
+    display->fillRect(20 + x, 15 + y, 88, 36);
+    display->setColor(WHITE);
+    // CPC logo
+    display->drawXbm(22 + x, 10 + y, logoWelcomeWidth, logoWelcomeHeight, logoWelcomeBits);
+    // horizontal lines
+    for (int i = 0; i < 3; ++i) {
+        display->drawHorizontalLine(0 + x, 4 + i + y, 128);
+        display->drawHorizontalLine(0 + x, 57 + i + y, 128);
+    }
+    offsetArrow = (offsetArrow + 1) % 20;
 }
 
 /**
@@ -73,8 +91,8 @@ void Display::setState(DispState newState) {
         return;
     }
     state = newState;
-    ui.transitionToFrame(static_cast<uint8_t>(newState));
-    // ui.switchToFrame(newState);
+    // ui.transitionToFrame(static_cast<uint8_t>(newState));
+    ui.switchToFrame(newState);
 }
 
 /**

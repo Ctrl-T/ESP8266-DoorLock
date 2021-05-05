@@ -3,8 +3,7 @@
 
 #include "OLEDDisplayUi.h"
 #include "SSD1306Wire.h"
-#include "logoCPC.h"
-#include "logoQingjin.h"
+#include "images.h"
 #include <Ticker.h>
 #include <Wire.h>
 

@@ -1,0 +1,61 @@
+<body>
+    <title>智能门锁 - OTA</title>
+    <h1>智能门锁更新系统</h1>
+    <div class="line"></div>
+    <iframe name='dummyFrame' onload='onUploadOk(this)'></iframe>
+    <form method='POST' action='/update' enctype='multipart/form-data' target='dummyFrame' onsubmit='onUpload(this)'>
+        <input type='file' name='update' accept='.bin'>
+        <input type='submit' value='更新'>
+    </form>
+    <script>
+        function onUploadOk(el) {
+            let ret = el.contentWindow.document.querySelector("body").innerText;
+            if (ret != "") { alert(ret); window.location.reload(); }
+        }
+        function onUpload(el) {
+            let btn = document.querySelector("input[type=submit]"); btn.disabled = true; btn.value = "正在上传";
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            text-align: center;
+            background-color: #444d58;
+            color: #e7f9ff;
+            font-size: large;
+            margin: 3rem;
+        }
+
+        h1 {
+            color: #65d9ee;
+        }
+
+        iframe {
+            display: none;
+        }
+
+        input {
+            font-size: large;
+        }
+
+        input[type='submit'] {
+            background-color: #444d58;
+            color: #e7f9ff;
+            border: 1px solid #e7f9ff;
+            padding: .2rem .5rem;
+        }
+
+        input[type='submit']:hover {
+            background-color: #e7f9ff;
+            color: #444d58;
+        }
+
+        .line {
+            border-top: 2px solid #6e757c;
+            width: 34rem;
+            margin: 1rem auto 3rem auto;
+        }
+    </style>

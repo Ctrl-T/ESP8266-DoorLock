@@ -53,6 +53,9 @@ void Finger::init() { serialFinger.begin(115200); }
  */
 void Finger::sendCmd(Command_t cmd) {
     serialFinger.write(CMD_DATA[cmd], 26);
+    // while (!serialFinger.available()) {
+    //     yield();
+    // }
     /* 等待指纹模块返回26个字节应答数据 */
     serialFinger.readBytes(recvBuff, 26);
 }
